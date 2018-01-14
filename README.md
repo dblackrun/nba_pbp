@@ -4,7 +4,7 @@
 * Adds detailed data for each possession including start time, end time, score margin, how the previous possession ended, second chance time, offensive rebounds
 * Sums up team, opponent, player and lineup stats for list of possessions
 * Shooting, assist and rebound stats broken down by shot zone
-
+* Blocks, And1s and Shooting Foul breakdown
 
 ## Install
 
