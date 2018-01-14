@@ -1,7 +1,6 @@
 package nba_pbp
 
 type GameDetails struct {
-	Mid             int64       `json:"mid"`
 	GameId          string      `json:"gid"`
 	GameCode        string      `json:"gcode"`
 	GameDate        string      `json:"gdte"`
