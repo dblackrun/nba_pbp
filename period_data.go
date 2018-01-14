@@ -127,6 +127,7 @@ func (period *PeriodData) ParsePossessions(game_details GameDetails) ([]Possessi
 		if i == 0 {
 			possession_start_seconds_remaining = seconds_remaining
 			previous_possession_end_event_num = event.EventNum
+			score_differential = event.HomeScore - event.VisitorScore
 		}
 		// determine if possession has changed
 		possession_changing_event := false
