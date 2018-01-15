@@ -576,7 +576,7 @@ func (event *PbpEvent) GetReboundedShot(period_events []PbpEvent) (PbpEvent, err
 			}
 			if !found_rebound && (period_event.IsMissedFT() || period_event.IsMissedFG()) {
 				last_miss_before_rebound = period_event
-			} else if period_event.IsShotClockViolation() {
+			}else if period_event.IsShotClockViolation() && event.IsTeamRebound(){
 				// check for shot clock violation at time of rebound, we can ignore these rebounds
 				shot_clock_seconds_remaining, err := period_event.GetSecondsRemaining()
 				if err != nil {
