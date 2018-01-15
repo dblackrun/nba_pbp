@@ -135,7 +135,7 @@ func TestParsingPbp(t *testing.T) {
 	}
 
 	player_id = int64(0)
-	stat_key = "AtRimRebound"
+	stat_key = "OffAtRimRebound"
 	expected_stat_value = int64(1)
 	stat_value = possession_details[event_index].PlayerStats[team_id][lineup_id][opponent_lineup_id][player_id][stat_key]
 	if stat_value != expected_stat_value {
@@ -156,7 +156,7 @@ func TestParsingPbp(t *testing.T) {
 	opponent_lineup_id = "201939-202691-203110-2585-2738"
 	lineup_id = "1626155-1628393-201599-201933-203710"
 
-	stat_key = "AtRimRebound"
+	stat_key = "DefAtRimRebound"
 	player_id = int64(201599)
 	expected_stat_value = int64(1)
 	stat_value = possession_details[event_index].PlayerStats[team_id][lineup_id][opponent_lineup_id][player_id][stat_key]
@@ -269,36 +269,36 @@ func TestParsingPbp(t *testing.T) {
 		"Corner3Misses":                        int64(4),
 		"DeadballTurnovers":                    int64(1),
 		"DefArc3Rebound":                       int64(2),
-		"DefArc3ReboundChances":                int64(3),
+		"DefArc3ReboundChances":                int64(15),
 		"DefAtRimRebound":                      int64(3),
-		"DefAtRimReboundChances":               int64(3),
+		"DefAtRimReboundChances":               int64(15),
 		"DefBlockedAtRimRebound":               int64(1),
-		"DefBlockedAtRimReboundChances":        int64(2),
+		"DefBlockedAtRimReboundChances":        int64(10),
 		"DefensivePossessions":                 int64(25),
 		"DefFTRebound":                         int64(1),
-		"DefFTReboundChances":                  int64(1),
+		"DefFTReboundChances":                  int64(5),
 		"DefLongMidRangeRebound":               int64(1),
-		"DefLongMidRangeReboundChances":        int64(1),
+		"DefLongMidRangeReboundChances":        int64(5),
 		"DefShortMidRangeRebound":              int64(2),
-		"DefShortMidRangeReboundChances":       int64(2),
+		"DefShortMidRangeReboundChances":       int64(10),
 		"FTMakes":                              int64(8),
 		"LiveballTurnovers":                    int64(1),
 		"LongMidRangeAssists":                  int64(1),
 		"LongMidRangeMakes":                    int64(1),
 		"LongMidRangeMisses":                   int64(3),
 		"OffArc3Rebound":                       int64(1),
-		"OffArc3ReboundChances":                int64(2),
+		"OffArc3ReboundChances":                int64(10),
 		"OffAtRimRebound":                      int64(2),
-		"OffAtRimReboundChances":               int64(3),
-		"OffBlockedAtRimReboundChances":        int64(3),
+		"OffAtRimReboundChances":               int64(15),
+		"OffBlockedAtRimReboundChances":        int64(15),
 		"OffBlockedLongMidRangeRebound":        int64(1),
-		"OffBlockedLongMidRangeReboundChances": int64(1),
+		"OffBlockedLongMidRangeReboundChances": int64(5),
 		"OffCorner3Rebound":                    int64(1),
-		"OffCorner3ReboundChances":             int64(4),
+		"OffCorner3ReboundChances":             int64(20),
 		"OffensivePossessions":                 int64(26),
 		"OffLongMidRangeRebound":               int64(1),
-		"OffLongMidRangeReboundChances":        int64(2),
-		"OffShortMidRangeReboundChances":       int64(2),
+		"OffLongMidRangeReboundChances":        int64(10),
+		"OffShortMidRangeReboundChances":       int64(10),
 		"PenaltyFreeThrowTrips":                int64(1),
 		"PersonalFouls":                        int64(2),
 		"PersonalFoulsDrawn":                   int64(2),
@@ -311,7 +311,11 @@ func TestParsingPbp(t *testing.T) {
 	}
 	match = reflect.DeepEqual(team_stats, expected_team_stats)
 	if !match {
-		t.Errorf("Expected %#v, got %#v", expected_team_stats, team_stats)
+		for key, value := range expected_team_stats{
+			if value != team_stats[key]{
+				t.Errorf("Expected %d, got %d for %s", value, team_stats[key], key)
+			}
+		}
 	}
 	// opponent stats
 	expected_opponent_stats := map[string]int64{
@@ -324,19 +328,19 @@ func TestParsingPbp(t *testing.T) {
 		"AtRimMisses":                          int64(5),
 		"BlockedAtRim":                         int64(2),
 		"DefArc3Rebound":                       int64(1),
-		"DefArc3ReboundChances":                int64(2),
+		"DefArc3ReboundChances":                int64(10),
 		"DefAtRimRebound":                      int64(1),
-		"DefAtRimReboundChances":               int64(3),
+		"DefAtRimReboundChances":               int64(15),
 		"DefBlockedAtRimRebound":               int64(3),
-		"DefBlockedAtRimReboundChances":        int64(3),
-		"DefBlockedLongMidRangeReboundChances": int64(1),
+		"DefBlockedAtRimReboundChances":        int64(15),
+		"DefBlockedLongMidRangeReboundChances": int64(5),
 		"DefCorner3Rebound":                    int64(3),
-		"DefCorner3ReboundChances":             int64(4),
+		"DefCorner3ReboundChances":             int64(20),
 		"DefensivePossessions":                 int64(26),
 		"DefLongMidRangeRebound":               int64(1),
-		"DefLongMidRangeReboundChances":        int64(2),
+		"DefLongMidRangeReboundChances":        int64(10),
 		"DefShortMidRangeRebound":              int64(2),
-		"DefShortMidRangeReboundChances":       int64(2),
+		"DefShortMidRangeReboundChances":       int64(10),
 		"FTMakes":                              int64(6),
 		"FTMisses":                             int64(1),
 		"LiveballTurnovers":                    int64(3),
@@ -345,14 +349,14 @@ func TestParsingPbp(t *testing.T) {
 		"LongMidRangeMakes":                    int64(3),
 		"LongMidRangeMisses":                   int64(1),
 		"OffArc3Rebound":                       int64(1),
-		"OffArc3ReboundChances":                int64(3),
-		"OffAtRimReboundChances":               int64(3),
+		"OffArc3ReboundChances":                int64(15),
+		"OffAtRimReboundChances":               int64(15),
 		"OffBlockedAtRimRebound":               int64(1),
-		"OffBlockedAtRimReboundChances":        int64(2),
+		"OffBlockedAtRimReboundChances":        int64(10),
 		"OffensivePossessions":                 int64(25),
-		"OffFTReboundChances":                  int64(1),
-		"OffLongMidRangeReboundChances":        int64(1),
-		"OffShortMidRangeReboundChances":       int64(2),
+		"OffFTReboundChances":                  int64(5),
+		"OffLongMidRangeReboundChances":        int64(5),
+		"OffShortMidRangeReboundChances":       int64(10),
 		"PersonalFouls":                        int64(2),
 		"PersonalFoulsDrawn":                   int64(2),
 		"Seconds":                              int64(3595),
@@ -366,7 +370,11 @@ func TestParsingPbp(t *testing.T) {
 	}
 	match = reflect.DeepEqual(opponent_stats, expected_opponent_stats)
 	if !match {
-		t.Errorf("Expected %#v, got %#v", expected_opponent_stats, opponent_stats)
+		for key, value := range expected_opponent_stats{
+			if value != opponent_stats[key]{
+				t.Errorf("Expected %d, got %d for %s", value, opponent_stats[key], key)
+			}
+		}
 	}
 
 	//player stats
@@ -479,26 +487,26 @@ func TestParsingPbp(t *testing.T) {
 		"Corner3Misses":                        int64(1),
 		"DeadballTurnovers":                    int64(1),
 		"DefArc3Rebound":                       int64(1),
-		"DefArc3ReboundChances":                int64(1),
+		"DefArc3ReboundChances":                int64(10),
 		"DefAtRimRebound":                      int64(1),
-		"DefAtRimReboundChances":               int64(1),
+		"DefAtRimReboundChances":               int64(5),
 		"DefBlockedAtRimRebound":               int64(1),
-		"DefBlockedAtRimReboundChances":        int64(1),
+		"DefBlockedAtRimReboundChances":        int64(10),
 		"DefensivePossessions":                 int64(12),
 		"DefFTRebound":                         int64(1),
-		"DefFTReboundChances":                  int64(1),
+		"DefFTReboundChances":                  int64(5),
 		"DefLongMidRangeRebound":               int64(1),
-		"DefLongMidRangeReboundChances":        int64(1),
+		"DefLongMidRangeReboundChances":        int64(5),
 		"DefShortMidRangeRebound":              int64(2),
-		"DefShortMidRangeReboundChances":       int64(2),
+		"DefShortMidRangeReboundChances":       int64(10),
 		"FTMakes":                              int64(2),
 		"LongMidRangeAssists":                  int64(1),
 		"LongMidRangeMakes":                    int64(1),
 		"LongMidRangeMisses":                   int64(1),
 		"OffAtRimRebound":                      int64(1),
-		"OffAtRimReboundChances":               int64(1),
+		"OffAtRimReboundChances":               int64(10),
 		"OffBlockedLongMidRangeRebound":        int64(1),
-		"OffBlockedLongMidRangeReboundChances": int64(1),
+		"OffBlockedLongMidRangeReboundChances": int64(5),
 		"OffensivePossessions":                 int64(13),
 		"PersonalFouls":                        int64(1),
 		"PersonalFoulsDrawn":                   int64(1),
@@ -510,7 +518,11 @@ func TestParsingPbp(t *testing.T) {
 	}
 	match = reflect.DeepEqual(lineup_stats[lineup_id], expected_stats)
 	if !match {
-		t.Errorf("Expected %#v, got %#v", expected_stats, lineup_stats[lineup_id])
+		for key, value := range expected_stats{
+			if value != lineup_stats[lineup_id][key]{
+				t.Errorf("Expected %d, got %d for %s", value, lineup_stats[lineup_id][key], key)
+			}
+		}
 	}
 
 	// lineup opponent stats
@@ -523,16 +535,16 @@ func TestParsingPbp(t *testing.T) {
 		"AtRimMisses":                    int64(3),
 		"BlockedAtRim":                   int64(2),
 		"DefArc3Rebound":                 int64(1),
-		"DefArc3ReboundChances":          int64(1),
+		"DefArc3ReboundChances":          int64(5),
 		"DefAtRimRebound":                int64(1),
-		"DefAtRimReboundChances":         int64(1),
+		"DefAtRimReboundChances":         int64(10),
 		"DefBlockedAtRimRebound":         int64(2),
-		"DefBlockedAtRimReboundChances":  int64(2),
+		"DefBlockedAtRimReboundChances":  int64(10),
 		"DefCorner3Rebound":              int64(1),
-		"DefCorner3ReboundChances":       int64(1),
+		"DefCorner3ReboundChances":       int64(5),
 		"DefensivePossessions":           int64(13),
 		"DefShortMidRangeRebound":        int64(1),
-		"DefShortMidRangeReboundChances": int64(1),
+		"DefShortMidRangeReboundChances": int64(5),
 		"FTMakes":                        int64(1),
 		"FTMisses":                       int64(1),
 		"LiveballTurnovers":              int64(1),
@@ -541,9 +553,9 @@ func TestParsingPbp(t *testing.T) {
 		"LongMidRangeMakes":              int64(3),
 		"LongMidRangeMisses":             int64(1),
 		"OffArc3Rebound":                 int64(1),
-		"OffArc3ReboundChances":          int64(1),
+		"OffArc3ReboundChances":          int64(10),
 		"OffBlockedAtRimRebound":         int64(1),
-		"OffBlockedAtRimReboundChances":  int64(1),
+		"OffBlockedAtRimReboundChances":  int64(10),
 		"OffensivePossessions":           int64(12),
 		"PersonalFouls":                  int64(1),
 		"PersonalFoulsDrawn":             int64(1),
@@ -554,6 +566,10 @@ func TestParsingPbp(t *testing.T) {
 	}
 	match = reflect.DeepEqual(lineup_opponent_stats[lineup_id], expected_stats)
 	if !match {
-		t.Errorf("Expected %#v, got %#v", expected_stats, lineup_opponent_stats[lineup_id])
+		for key, value := range expected_stats{
+			if value != lineup_opponent_stats[lineup_id][key]{
+				t.Errorf("Expected %d, got %d for %s", value, lineup_opponent_stats[lineup_id][key], key)
+			}
+		}
 	}
 }

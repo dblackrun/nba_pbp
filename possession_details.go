@@ -491,23 +491,52 @@ func (possession *PossessionDetails) AddPlayerStatsForPossession() error {
 						}
 
 						def_reb := event.IsDefensiveRebound(rebounded_shot)
-						var rebound_team_id int64
-						var rebound_lineup_id, rebound_opponent_lineup_id string
+						var rebound_team_id, rebound_opponent_id int64
+						var rebound_lineup_id, rebound_opponent_lineup_id, rebound_team_chances_key, rebound_opponent_chances_key, stat_key string
 						if def_reb {
 							rebound_team_id = d_team_id
 							rebound_lineup_id = d_lineup_id
+							rebound_opponent_id = o_team_id
 							rebound_opponent_lineup_id = o_lineup_id
+							rebound_team_chances_key = DEFENSIVE_REBOUND_PREIX + missed_shot_type + REBOUND_KEY + CHANCES_STRING
+							rebound_opponent_chances_key = OFFENSIVE_REBOUND_PREIX + missed_shot_type + REBOUND_KEY + CHANCES_STRING
+							stat_key = DEFENSIVE_REBOUND_PREIX + missed_shot_type+REBOUND_KEY
 						} else {
 							rebound_team_id = o_team_id
 							rebound_lineup_id = o_lineup_id
+							rebound_opponent_id = d_team_id
 							rebound_opponent_lineup_id = d_lineup_id
+							rebound_team_chances_key = OFFENSIVE_REBOUND_PREIX + missed_shot_type + REBOUND_KEY + CHANCES_STRING
+							rebound_opponent_chances_key = DEFENSIVE_REBOUND_PREIX + missed_shot_type + REBOUND_KEY + CHANCES_STRING
+							stat_key = OFFENSIVE_REBOUND_PREIX + missed_shot_type + REBOUND_KEY
 						}
 
 						player_id := event.PlayerId
 						if _, exists := stats[rebound_team_id][rebound_lineup_id][rebound_opponent_lineup_id][player_id]; !exists {
 							stats[rebound_team_id][rebound_lineup_id][rebound_opponent_lineup_id][player_id] = make(map[string]int64)
 						}
-						stats[rebound_team_id][rebound_lineup_id][rebound_opponent_lineup_id][player_id][missed_shot_type+REBOUND_KEY] += 1
+						stats[rebound_team_id][rebound_lineup_id][rebound_opponent_lineup_id][player_id][stat_key] += 1
+
+						for _, player_id_string := range strings.Split(rebound_lineup_id, "-") {
+							player_id_int, err := strconv.ParseInt(player_id_string, 10, 64)
+							if err != nil {
+								return err
+							}
+							if _, exists := stats[rebound_team_id][rebound_lineup_id][rebound_opponent_lineup_id][player_id_int]; !exists {
+								stats[rebound_team_id][rebound_lineup_id][rebound_opponent_lineup_id][player_id_int] = make(map[string]int64)
+							}
+							stats[rebound_team_id][rebound_lineup_id][rebound_opponent_lineup_id][player_id_int][rebound_team_chances_key] += 1
+						}
+						for _, player_id_string := range strings.Split(rebound_opponent_lineup_id, "-") {
+							player_id_int, err := strconv.ParseInt(player_id_string, 10, 64)
+							if err != nil {
+								return err
+							}
+							if _, exists := stats[rebound_opponent_id][rebound_opponent_lineup_id][rebound_lineup_id][player_id_int]; !exists {
+								stats[rebound_opponent_id][rebound_opponent_lineup_id][rebound_lineup_id][player_id_int] = make(map[string]int64)
+							}
+							stats[rebound_opponent_id][rebound_opponent_lineup_id][rebound_lineup_id][player_id_int][rebound_opponent_chances_key] += 1
+						}
 					}
 				}
 			}
@@ -600,7 +629,7 @@ func (possession *PossessionDetails) AddPlayerStatsForPossession() error {
 }
 
 func SumPossessionStats(possessions []PossessionDetails, team_id int64) (map[string]int64, map[string]int64, map[int64]map[int64]map[string]int64, map[string]map[string]int64, map[string]map[string]int64, error) {
-	// note that for all non player stats, seconds played will be 5 times actual value since sums up seconds for each player in lineup
+	// note that for all non player stats, seconds played and rebound chances will be 5 times actual value since sums up for each player in lineup
 	team_stats := make(map[string]int64)
 	opponent_stats := make(map[string]int64)
 	player_stats := make(map[int64]map[int64]map[string]int64)
@@ -630,51 +659,6 @@ func SumPossessionStats(possessions []PossessionDetails, team_id int64) (map[str
 					}
 					for player_id, possession_player_stats := range possession_lineup_stats {
 						for stat_key, stat_value := range possession_player_stats {
-							if strings.Contains(stat_key, REBOUND_KEY) {
-								// add Off/Def to rebound key
-								var rebound_team_chances_key, rebound_opponent_chances_key string
-								if stats_team_id == possession.OffenseTeamId {
-									rebound_team_chances_key = OFFENSIVE_REBOUND_PREIX + stat_key + CHANCES_STRING
-									rebound_opponent_chances_key = DEFENSIVE_REBOUND_PREIX + stat_key + CHANCES_STRING
-									stat_key = OFFENSIVE_REBOUND_PREIX + stat_key
-								} else {
-									rebound_team_chances_key = DEFENSIVE_REBOUND_PREIX + stat_key + CHANCES_STRING
-									rebound_opponent_chances_key = OFFENSIVE_REBOUND_PREIX + stat_key + CHANCES_STRING
-									stat_key = DEFENSIVE_REBOUND_PREIX + stat_key
-								}
-								for _, player_id_string := range strings.Split(lineup_id, "-") {
-									player_id_int, err := strconv.ParseInt(player_id_string, 10, 64)
-									if err != nil {
-										return team_stats, opponent_stats, player_stats, lineup_stats, lineup_opponent_stats, err
-									}
-									if _, exists := player_stats[stats_team_id][player_id_int]; !exists {
-										player_stats[stats_team_id][player_id_int] = make(map[string]int64)
-									}
-									player_stats[stats_team_id][player_id_int][rebound_team_chances_key] += 1
-								}
-								for _, player_id_string := range strings.Split(opponent_lineup_id, "-") {
-									player_id_int, err := strconv.ParseInt(player_id_string, 10, 64)
-									if err != nil {
-										return team_stats, opponent_stats, player_stats, lineup_stats, lineup_opponent_stats, err
-									}
-									if _, exists := player_stats[opponent_team_id][player_id_int]; !exists {
-										player_stats[opponent_team_id][player_id_int] = make(map[string]int64)
-									}
-									player_stats[opponent_team_id][player_id_int][rebound_opponent_chances_key] += 1
-								}
-
-								if stats_team_id == team_id {
-									team_stats[rebound_team_chances_key] += 1
-									opponent_stats[rebound_opponent_chances_key] += 1
-									lineup_stats[lineup_id][rebound_team_chances_key] += 1
-									lineup_opponent_stats[opponent_lineup_id][rebound_opponent_chances_key] += 1
-								} else {
-									team_stats[rebound_opponent_chances_key] += 1
-									opponent_stats[rebound_team_chances_key] += 1
-									lineup_stats[lineup_id][rebound_opponent_chances_key] += 1
-									lineup_opponent_stats[opponent_lineup_id][rebound_team_chances_key] += 1
-								}
-							}
 							if _, exists := player_stats[stats_team_id][player_id]; !exists {
 								player_stats[stats_team_id][player_id] = make(map[string]int64)
 							}
