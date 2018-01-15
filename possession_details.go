@@ -649,7 +649,6 @@ func (possession *PossessionDetails) AddPlayerStatsForPossession() error {
 }
 
 func SumPossessionStats(possessions []PossessionDetails, team_id int64) (map[string]int64, map[string]int64, map[int64]map[int64]map[string]int64, map[string]map[string]int64, map[string]map[string]int64, error) {
-	// note that for all non player stats, seconds played and rebound chances will be 5 times actual value since sums up for each player in lineup
 	team_stats := make(map[string]int64)
 	opponent_stats := make(map[string]int64)
 	player_stats := make(map[int64]map[int64]map[string]int64)
@@ -726,6 +725,32 @@ func SumPossessionStats(possessions []PossessionDetails, team_id int64) (map[str
 			opponent_stats[OFFENSIVE_POSSESSIONS_KEY] += 1
 			lineup_stats[possession.DefenseLineupId][DEFENSIVE_POSSESSIONS_KEY] += 1
 			lineup_opponent_stats[possession.DefenseLineupId][OFFENSIVE_POSSESSIONS_KEY] += 1
+		}
+	}
+
+	// seconds and rebound chances for team, opponent, lineup and lineup opponent need to be divided by 5 since they are summed for each player on floor
+	for stat, value := range team_stats{
+		if stat == SECONDS_KEY || strings.HasSuffix(stat, REBOUND_KEY + CHANCES_STRING){
+			team_stats[stat] = value / 5
+		}
+	}
+	for stat, value := range opponent_stats{
+		if stat == SECONDS_KEY || strings.HasSuffix(stat, REBOUND_KEY + CHANCES_STRING){
+			opponent_stats[stat] = value / 5
+		}
+	}
+	for lineup_id, stats := range lineup_stats{
+		for stat, value := range stats{
+			if stat == SECONDS_KEY || strings.HasSuffix(stat, REBOUND_KEY + CHANCES_STRING){
+				lineup_stats[lineup_id][stat] = value / 5
+			}
+		}
+	}
+	for lineup_id, stats := range lineup_opponent_stats{
+		for stat, value := range stats{
+			if stat == SECONDS_KEY || strings.HasSuffix(stat, REBOUND_KEY + CHANCES_STRING){
+				lineup_opponent_stats[lineup_id][stat] = value / 5
+			}
 		}
 	}
 
