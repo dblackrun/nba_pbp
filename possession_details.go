@@ -428,33 +428,43 @@ func (possession *PossessionDetails) AddPlayerStatsForPossession() error {
 					return err
 				} else {
 					foul_lineup_ids := last_foul.GenerateLineupIds()
-					foul_o_lineup_id := foul_lineup_ids[o_team_id]
-					foul_d_lineup_id := foul_lineup_ids[d_team_id]
+					// check team id since team shooting technical ft can be team on defense
+					player_id := event.PlayerId
+					ft_team_id := event.TeamId
+					var ft_opponent_team_id int64
+					if ft_team_id == o_team_id {
+						ft_opponent_team_id = d_team_id
+					} else {
+						ft_opponent_team_id = o_team_id
+					}
+
+					foul_o_lineup_id := foul_lineup_ids[ft_team_id]
+					foul_d_lineup_id := foul_lineup_ids[ft_opponent_team_id]
 					// if FT is last event for possession, update lineup ids
 					if i == len(possession.Events)-1 {
 						possession.OffenseLineupId = foul_o_lineup_id
 						possession.DefenseLineupId = foul_d_lineup_id
 					}
-					if _, exists := stats[o_team_id][foul_o_lineup_id]; !exists {
-						stats[o_team_id][foul_o_lineup_id] = make(map[string]map[int64]map[string]int64)
+					if _, exists := stats[ft_team_id][foul_o_lineup_id]; !exists {
+						stats[ft_team_id][foul_o_lineup_id] = make(map[string]map[int64]map[string]int64)
 					}
-					if _, exists := stats[o_team_id][foul_o_lineup_id][foul_d_lineup_id]; !exists {
-						stats[o_team_id][foul_o_lineup_id][foul_d_lineup_id] = make(map[int64]map[string]int64)
+					if _, exists := stats[ft_team_id][foul_o_lineup_id][foul_d_lineup_id]; !exists {
+						stats[ft_team_id][foul_o_lineup_id][foul_d_lineup_id] = make(map[int64]map[string]int64)
 					}
-					if _, exists := stats[d_team_id][foul_d_lineup_id]; !exists {
-						stats[d_team_id][foul_d_lineup_id] = make(map[string]map[int64]map[string]int64)
+					if _, exists := stats[ft_opponent_team_id][foul_d_lineup_id]; !exists {
+						stats[ft_opponent_team_id][foul_d_lineup_id] = make(map[string]map[int64]map[string]int64)
 					}
-					if _, exists := stats[d_team_id][foul_d_lineup_id][foul_o_lineup_id]; !exists {
-						stats[d_team_id][foul_d_lineup_id][foul_o_lineup_id] = make(map[int64]map[string]int64)
+					if _, exists := stats[ft_opponent_team_id][foul_d_lineup_id][foul_o_lineup_id]; !exists {
+						stats[ft_opponent_team_id][foul_d_lineup_id][foul_o_lineup_id] = make(map[int64]map[string]int64)
 					}
-					player_id := event.PlayerId
-					if _, exists := stats[o_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id]; !exists {
-						stats[o_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id] = make(map[string]int64)
+
+					if _, exists := stats[ft_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id]; !exists {
+						stats[ft_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id] = make(map[string]int64)
 					}
 					if event.IsMadeFT() {
-						stats[o_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id][FREE_THROW_STRING+MAKES_KEY] += 1
+						stats[ft_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id][FREE_THROW_STRING+MAKES_KEY] += 1
 					} else if event.IsMissedFT() {
-						stats[o_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id][FREE_THROW_STRING+MISSES_KEY] += 1
+						stats[ft_team_id][foul_o_lineup_id][foul_d_lineup_id][player_id][FREE_THROW_STRING+MISSES_KEY] += 1
 					}
 				}
 			} else if event.IsRebound() {
@@ -616,11 +626,21 @@ func (possession *PossessionDetails) AddPlayerStatsForPossession() error {
 					}
 				}
 			} else if event.IsTechnicalFT() {
+				// check team id since team shooting ft can be team on defense
 				player_id := event.PlayerId
-				if _, exists := stats[o_team_id][o_lineup_id][d_lineup_id][player_id]; !exists {
-					stats[o_team_id][o_lineup_id][d_lineup_id][player_id] = make(map[string]int64)
+				ft_team_id := event.TeamId
+				var ft_lineup_id, ft_opponent_lineup_id string
+				if ft_team_id == o_team_id {
+					ft_lineup_id = o_lineup_id
+					ft_opponent_lineup_id = d_lineup_id
+				} else {
+					ft_lineup_id = d_lineup_id
+					ft_opponent_lineup_id = o_lineup_id
 				}
-				stats[o_team_id][o_lineup_id][d_lineup_id][player_id][TECHNICAL_FT_KEY] += 1
+				if _, exists := stats[ft_team_id][ft_lineup_id][ft_opponent_lineup_id][player_id]; !exists {
+					stats[ft_team_id][ft_lineup_id][ft_opponent_lineup_id][player_id] = make(map[string]int64)
+				}
+				stats[ft_team_id][ft_lineup_id][ft_opponent_lineup_id][player_id][TECHNICAL_FT_KEY] += 1
 			}
 		}
 	}
